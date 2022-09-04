@@ -6,39 +6,13 @@ import win32con as wcon
 from time import sleep
 
 
-class SlotList:
-    def __init__(self,cap = 8):
-        self.slots = [None for i in range(cap)]
-        self.max_size = cap
-        self.size = 0
-
-    def add(self, slot, sid = -1):
-        if slot in self.slots:
-            print("Slot present in list")
-            return
-        if self.size >= self.max_size:
-            print("Slots capacity reached")
-            return
-        if sid == -1:
-            for i in range(self.max_size):
-                if not self.slots[i]:
-                    self.slots[i] = slot
-                    break
-            return
-        
-
-
-        self.slots[sid]
-        self.size += 1
-    pass
 
 class Slot:
-    def __init__(self,slotID,isMain = False):
+    def __init__(self,isMain = False):
         self.win = wgui.GetForegroundWindow()
         self.thread,self.pid = wproc.GetWindowThreadProcessId(self.win)
         self.process = psutil.Process(self.pid)
         self.title = wgui.GetWindowText(self.win)
-        self.slotID = slotID
         self.state = False
         self.isMain = isMain
 
@@ -47,9 +21,6 @@ class Slot:
             return NotImplemented
 
         return self.__dict__ == other.__dict__
-
-    def changeID(self,slotID):
-        self.slotID = slotID
 
     def suspend(self):
         if self.isMain:
@@ -100,3 +71,44 @@ class Slot:
         wproc.AttachThreadInput(wapi.GetCurrentThreadId(), self.thread, True)
         wgui.ShowWindow(self.win,wcon.SW_SHOW)
         wgui.SetForegroundWindow(self.win)
+
+class SlotList:
+    def __init__(self,cap = 8):
+        self.slots = [None for i in range(cap)]
+        self.max_size = cap
+        self.size = 0
+
+    def add(self, slot=Slot(), sid = -1):
+        if slot in self.slots:
+            print("Slot present in list")
+            return
+        if self.size >= self.max_size:
+            print("Slots capacity reached")
+            return
+        if sid == -1:
+            for i in range(self.max_size):
+                if not self.slots[i]:
+                    sid = i
+                    break
+        elif sid not in range(self.max_size):
+            print("Given slot ID not in range")
+            return
+        self.slots[sid] = slot
+        self.size += 1
+    
+    def remove(self, sid = -1):
+        if self.size <= 0:
+            print("No slots being used")
+            return
+        if sid == -1:
+            sid = self.size - 1
+        elif sid not in range(self.max_size):
+            print("Given slot ID not in range")
+            return
+        print("Removing slot, resuming slot process")
+        slot = self.slots.pop(sid)
+        slot.resume()
+
+
+
+    pass
