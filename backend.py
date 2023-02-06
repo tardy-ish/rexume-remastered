@@ -12,6 +12,7 @@ class Slot:
         self.win = wgui.GetForegroundWindow()
         self.thread, self.pid = wproc.GetWindowThreadProcessId(self.win)
         self.process = psutil.Process(self.pid)
+        self.exeLoc = self.process.exe()
         self.title = wgui.GetWindowText(self.win)
         self.state = False
         self.isMain = isMain
