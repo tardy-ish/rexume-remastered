@@ -3,8 +3,6 @@ import win32gui as wgui
 import win32process as wproc
 import win32api as wapi
 import win32con as wcon
-from time import sleep
-from pprint import pprint
 
 
 class Slot:
@@ -31,15 +29,15 @@ class Slot:
             return False
         try:
             self.process.suspend()
-            print(f"Suspended Process: {self.name}")
+            print(f"Suspended Process: {self.title}")
         except Exception as e:
-            print("Error when Trying to Suspend Process")
+            print("Error when Trying to Suspend Process", e)
             return False
         try:
             self.minimize()
-            print(f"Minimized Process: {self.name}")
-        except:
-            print(f"Error when trying to minimize")
+            print(f"Minimized Process: {self.title}")
+        except Exception as e:
+            print(f"Error when trying to minimize", e)
             return False
         self.state = True
 
@@ -52,15 +50,15 @@ class Slot:
             return False
         try:
             self.process.resume()
-            print(f"Resumed Process: {self.name}")
+            print(f"Resumed Process: {self.title}")
         except Exception as e:
-            print("Error when Trying to Resume Process")
+            print("Error when Trying to Resume Process",e)
             return False
         try:
             self.unminimize()
-            print(f"Minimized Process: {self.name}")
-        except:
-            print(f"Error when trying to un-minimize")
+            print(f"Minimized Process: {self.title}")
+        except Exception as e:
+            print(f"Error when trying to un-minimize",e)
             return False
         self.state = False
 
@@ -71,6 +69,9 @@ class Slot:
         wproc.AttachThreadInput(wapi.GetCurrentThreadId(), self.thread, True)
         wgui.ShowWindow(self.win, wcon.SW_SHOW)
         wgui.SetForegroundWindow(self.win)
+    
+    def give(self):
+        return self.title,self.exeLoc
 
 
 class SlotList:

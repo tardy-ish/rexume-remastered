@@ -6,7 +6,7 @@ class ConfirmationBox(ctk.CTkToplevel):
     def __init__(self,__yes__,__no__ = lambda: print("Pressed No"), *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.geometry("400x180")
-        self.title("Confirm")
+        self.title("Confirm Slot Deletion")
         self.lift()  # lift window on top
         self.attributes("-topmost", True)  # stay on top
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
@@ -84,14 +84,54 @@ class ConfirmationBox(ctk.CTkToplevel):
         self.grab_release()
         self.destroy()
 
+class ErrorDialog(ctk.CTkToplevel):
+    def __init__(self,msg, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.geometry("400x180")
+        self.title("Some Error Occurred")
+        self.lift()  # lift window on top
+        self.attributes("-topmost", True)  # stay on top
+        self.protocol("WM_DELETE_WINDOW", self._on_closing)
+        self.after(10, self._create_widgets)  # create widgets with slight delay, to avoid white flickering of background
+        self.resizable(False, False)
+        self.grab_set()  # make other windows not clickable
+        self.msg = msg
+
+    def _create_widgets(self):
+        self.grid_columnconfigure((0, 1), weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self._label = ctk.CTkLabel(
+                master=self,
+                width=300,
+                wraplength=300,
+                fg_color="transparent",
+                text=f"Error Message: {self.msg}"
+                )
+        self._label.grid(
+                row=0, 
+                column=0, 
+                columnspan=2, 
+                padx=20, 
+                pady=20, 
+                sticky="ew"
+                )
+
+
+    def _on_closing(self):
+        self.grab_release()
+        self.destroy()
+
 class SingleSlot(ctk.CTkFrame):
-    def __init__(self, *args,**kwargs):
+    def __init__(self, title,loc,slot, *args,**kwargs):
         super().__init__(*args, **kwargs)
         
+        self.slot = slot
+
         self.configure(
                 width = 800, 
                 height = 170,
-                fg_color = "gray50"
+                fg_color = "black"
                 )
         
         self.status = ctk.CTkLabel(
@@ -111,7 +151,7 @@ class SingleSlot(ctk.CTkFrame):
                 pady = 30
                 )
 
-        self.title = tk.StringVar(value=" Title: ")
+        self.title = tk.StringVar(value=f" Title: {title}")
         self.tit_label = ctk.CTkLabel(
                 master=self,
                 width=500,
@@ -121,7 +161,7 @@ class SingleSlot(ctk.CTkFrame):
                 textvariable=self.title
                 )
 
-        self.exe = tk.StringVar(value=" Exe Loc: ")
+        self.exe = tk.StringVar(value=f" Exe Loc: {loc}")
         self.exe_label = ctk.CTkLabel(
                 master=self,
                 width=500,
@@ -153,12 +193,12 @@ class SingleSlot(ctk.CTkFrame):
                 padx = 10,
                 pady=0
                 )
-        self.ram_label.grid(
-                row = 2, 
-                column = 1,
-                padx = 10,
-                pady=(0,36)
-                )
+        # self.ram_label.grid(
+        #         row = 2, 
+        #         column = 1,
+        #         padx = 10,
+        #         pady=(0,36)
+        #         )
 
         self.but_size = 35
 
@@ -194,38 +234,50 @@ class SingleSlot(ctk.CTkFrame):
                 image=img,
                 fg_color="red",
                 hover_color="darkred",
-                command=self.delete
+                command=self.del_event
                 )
 
         self.sus_but.grid(row = 0, column = 2, padx = 10, pady = (20,0))
         self.res_but.grid(row = 1, column = 2, padx = 10)
-        self.del_but.grid(row = 2, column = 2, padx = 10, pady = (0,20))
+        self.del_but.grid(row = 2, column = 2, padx = 10, pady = (5,20))
     
     def suspend(self):
         try:
             # call suspend function
+            self.slot.suspend()
             self.status.configure(
                 fg_color = "red",
                 text="Suspended"
             )
-        except:
-            print("Some error in suspending the program")
+            self.slot.minimize()
+        except Exception as e:
+            print("Some error in suspending the program",e)
     
     def resume(self):
         try:
             # call resume function
+            self.slot.resume()
             self.status.configure(
                 fg_color = "green",
                 text="Active"
             )
-        except:
-            print("Some error in resuming the program")
+            self.slot.unminimize()
+        except Exception as e:
+            print("Some error in resuming the program",e)
+    
+    def del_event(self):
+        try:
+            ConfirmationBox(
+                __yes__=self.delete
+            )
+        except Exception as e:
+            print("Some error in deleting the slot",e)
     
     def delete(self):
         try:
-            # call resume function
+            self.resume()
             self.grid_forget()
             self.destroy()
-        except:
-            print("Some error in deleting the slot")
+        except Exception as e:
+            print("Some error in deleting the slot",e)
  
