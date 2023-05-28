@@ -63,13 +63,19 @@ class Slot:
         self.state = False
 
     def minimize(self):
-        wgui.ShowWindow(self.win, wcon.SW_HIDE)
+        try:
+            wgui.ShowWindow(self.win, wcon.SW_HIDE)
+        except Exception as e:
+            raise Exception("Error while trying to Minimize")
 
     def unminimize(self):
-        wproc.AttachThreadInput(wapi.GetCurrentThreadId(), self.thread, True)
-        wgui.ShowWindow(self.win, wcon.SW_SHOW)
-        wgui.SetForegroundWindow(self.win)
-    
+        try:
+            wproc.AttachThreadInput(wapi.GetCurrentThreadId(), self.thread, True)
+            wgui.ShowWindow(self.win, wcon.SW_SHOW)
+            wgui.SetForegroundWindow(self.win)
+        except Exception as e:
+            raise Exception("Error while trying to un-Minimize")
+
     def give(self):
         return self.title,self.exeLoc
 
